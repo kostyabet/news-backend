@@ -13,3 +13,260 @@ generator client {
 datasource db {
   provider = "postgresql"
 }
+
+// --------------------------------------------------------- //
+// ---- Enum tables ----
+model ArticleStatus {
+  as_id     Int       @id @default(autoincrement())
+  as_status String    @db.VarChar(50)
+  articles  Article[]
+
+  @@map("article-status")
+}
+
+model Language {
+  l_id       Int        @id @default(autoincrement())
+  l_language String     @db.VarChar(20)
+  articles   Article[]
+  settings   Settings[]
+
+  @@map("language")
+}
+
+model NotificationStatus {
+  ns_id         Int            @id @default(autoincrement())
+  ns_status     String         @db.VarChar(50)
+  notifications Notification[]
+
+  @@map("notifiaction-status")
+}
+
+model NotificationType {
+  nt_id         Int            @id @default(autoincrement())
+  nt_type       String         @db.VarChar(50)
+  notifications Notification[]
+
+  @@map("notificatino-type")
+}
+
+model ReactionType {
+  rt_id       Int        @id @default(autoincrement())
+  rt_reaction String     @db.VarChar(50)
+  reactions   Reaction[]
+
+  @@map("reaction-type")
+}
+
+model SubscriptionStatus {
+  ss_id         Int            @id @default(autoincrement())
+  ss_status     String         @db.VarChar(50)
+  subscriptions Subscription[]
+
+  @@map("subscription-status")
+}
+
+model Theme {
+  th_id    Int        @id @default(autoincrement())
+  th_theme String     @db.VarChar(50)
+  settings Settings[]
+
+  @@map("theme")
+}
+
+// ---- Main models ----
+model User {
+  u_id            Int    @id @default(autoincrement())
+  u_password_hash String @map("u_password-hash") @db.VarChar(64)
+  u_login         String @unique @db.VarChar(30)
+
+  // Realations
+  authoredArticles  Article[]      @relation("author")
+  moderatedArticles Article[]      @relation("moderator")
+  comments          Comment[]
+  notifications     Notification[]
+  reactions         Reaction[]
+  subscriptions     Subscription[] @relation("subscriber")
+  subscribedTo      Subscription[] @relation("author")
+  userInfo          UserInfo?
+  settings          Settings?      @relation(fields: [u_settings], references: [s_user])
+  u_settings        Int?
+
+  @@unique([u_login, u_password_hash])
+  @@map("user")
+}
+
+model UserInfo {
+  ui_user   Int     @id
+  ui_role   Int     @map("ui_role")
+  ui_email  String? @db.VarChar(50)
+  ui_avatar String? @db.VarChar(50)
+  ui_name   String? @db.VarChar(128)
+
+  // Relations
+  user     User      @relation(fields: [ui_user], references: [u_id], onDelete: Cascade)
+  role     UserRole  @relation(fields: [ui_role], references: [ur_id])
+  settings Settings?
+
+  @@unique([ui_user, ui_role])
+  @@index([ui_user, ui_email, ui_avatar, ui_name])
+  @@map("user-info")
+}
+
+model UserRole {
+  ur_id       Int    @id @default(autoincrement())
+  ur_role     String @db.VarChar(50)
+  ur_category Int    @map("ur_category")
+
+  // Relations
+  category Category   @relation(fields: [ur_category], references: [c_id])
+  userInfo UserInfo[]
+
+  @@unique([ur_id, ur_role, ur_category])
+  @@map("user-role")
+}
+
+model Article {
+  a_id        Int     @id @default(autoincrement())
+  a_author    Int     @map("a_author")
+  a_content   String  @db.Text
+  a_title     String  @db.VarChar(50)
+  a_slug      String? @db.VarChar(50)
+  a_status    Int     @map("a_status")
+  a_moderator Int     @map("a_moderator")
+  a_language  Int?    @map("a_language")
+
+  // Relations
+  author     User              @relation("author", fields: [a_author], references: [u_id])
+  moderator  User              @relation("moderator", fields: [a_moderator], references: [u_id])
+  status     ArticleStatus     @relation(fields: [a_status], references: [as_id])
+  language   Language?         @relation(fields: [a_language], references: [l_id])
+  categories ArticleCategory[]
+  tags       ArticleTag[]
+  comments   Comment[]
+  reactions  Reaction[]
+
+  @@index([a_id, a_content, a_title, a_slug, a_author])
+  @@index([a_id, a_moderator, a_language, a_status])
+  @@map("article")
+}
+
+model Category {
+  c_id          Int     @id @default(autoincrement())
+  c_name        String  @db.VarChar(50)
+  c_description String? @db.VarChar(128)
+
+  // Relations
+  articles  ArticleCategory[]
+  userRoles UserRole[]
+
+  @@index([c_id, c_name, c_description])
+  @@map("category")
+}
+
+model Tag {
+  t_id     Int          @id @default(autoincrement())
+  t_tag    String       @db.VarChar(50)
+  articles ArticleTag[]
+
+  @@map("tag")
+}
+
+model Comment {
+  c_id      Int  @id @default(autoincrement())
+  c_article Int  @map("c_article")
+  c_user    Int  @map("c_user")
+  c_parent  Int? @map("c_parent")
+
+  // Relations
+  article  Article   @relation(fields: [c_article], references: [a_id])
+  user     User      @relation(fields: [c_user], references: [u_id])
+  parent   Comment?  @relation("CommentToComment", fields: [c_parent], references: [c_id])
+  children Comment[] @relation("CommentToComment")
+
+  @@map("comment")
+}
+
+model Reaction {
+  r_article Int @map("r_article")
+  r_type    Int @map("r_type")
+  r_user    Int @map("r_user")
+
+  // Relations
+  article Article      @relation(fields: [r_article], references: [a_id])
+  type    ReactionType @relation(fields: [r_type], references: [rt_id])
+  user    User         @relation(fields: [r_user], references: [u_id])
+
+  @@id([r_article, r_user])
+  @@map("reaction")
+}
+
+model Notification {
+  n_id     Int @id @default(autoincrement())
+  n_status Int @map("n_status")
+  n_type   Int @map("n_type")
+  n_user   Int @map("n_user")
+
+  // Relations
+  status NotificationStatus @relation(fields: [n_status], references: [ns_id])
+  type   NotificationType   @relation(fields: [n_type], references: [nt_id])
+  user   User               @relation(fields: [n_user], references: [u_id])
+
+  @@unique([n_user, n_type])
+  @@index([n_user, n_type, n_status])
+  @@map("notificatino")
+}
+
+model Subscription {
+  sb_author Int  @map("sb_author")
+  sb_user   Int  @map("sb_user")
+  sb_status Int? @map("sb_status")
+
+  // Relations
+  author     User                @relation("author", fields: [sb_author], references: [u_id])
+  subscriber User                @relation("subscriber", fields: [sb_user], references: [u_id])
+  status     SubscriptionStatus? @relation(fields: [sb_status], references: [ss_id])
+
+  @@id([sb_user, sb_author])
+  @@map("subscription")
+}
+
+model Settings {
+  s_user         Int      @id @map("s_user")
+  s_theme        Int      @map("s_theme")
+  s_language     Int      @map("s_language")
+  s_email_notifi Boolean? @map("s_email-notifi")
+  s_push_notifi  Boolean? @map("s_push-notifi")
+
+  // Relations
+  userInfo UserInfo @relation(fields: [s_user], references: [ui_user], onDelete: Cascade)
+  theme    Theme    @relation(fields: [s_theme], references: [th_id])
+  language Language @relation(fields: [s_language], references: [l_id])
+  users    User[]
+
+  @@index([s_user, s_email_notifi, s_push_notifi])
+  @@index([s_user, s_theme, s_language])
+  @@map("settings")
+}
+
+// ---- Many to many tables ----
+model ArticleCategory {
+  ac_article  Int @map("ac_article")
+  ac_category Int @map("ac_category")
+
+  article  Article  @relation(fields: [ac_article], references: [a_id], onDelete: Cascade)
+  category Category @relation(fields: [ac_category], references: [c_id], onDelete: Cascade)
+
+  @@id([ac_article, ac_category])
+  @@map("article-category")
+}
+
+model ArticleTag {
+  at_article Int @map("at_article")
+  at_tag     Int @map("at_tag")
+
+  article Article @relation(fields: [at_article], references: [a_id], onDelete: Cascade)
+  tag     Tag     @relation(fields: [at_tag], references: [t_id], onDelete: Cascade)
+
+  @@id([at_article, at_tag])
+  @@map("article-tag")
+}
