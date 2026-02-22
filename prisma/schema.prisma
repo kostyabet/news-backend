@@ -96,11 +96,12 @@ model User {
 }
 
 model UserInfo {
-  ui_user   Int     @id
-  ui_role   Int     @map("ui_role")
-  ui_email  String? @db.VarChar(50)
-  ui_avatar String? @db.VarChar(50)
-  ui_name   String? @db.VarChar(128)
+  ui_user       Int     @id
+  ui_role       Int     @map("ui_role")
+  ui_email      String? @db.VarChar(50)
+  ui_avatar     String? @db.VarChar(50)
+  ui_firstName  String? @db.VarChar(128)
+  ui_secondName String? @db.VarChar(128)
 
   // Relations
   user     User      @relation(fields: [ui_user], references: [u_id], onDelete: Cascade)
@@ -108,17 +109,17 @@ model UserInfo {
   settings Settings?
 
   @@unique([ui_user, ui_role])
-  @@index([ui_user, ui_email, ui_avatar, ui_name])
+  @@index([ui_user, ui_email, ui_avatar, ui_firstName, ui_secondName])
   @@map("user-info")
 }
 
 model UserRole {
   ur_id       Int    @id @default(autoincrement())
   ur_role     String @db.VarChar(50)
-  ur_category Int    @map("ur_category")
+  ur_category Int?   @map("ur_category")
 
   // Relations
-  category Category   @relation(fields: [ur_category], references: [c_id])
+  category Category?  @relation(fields: [ur_category], references: [c_id])
   userInfo UserInfo[]
 
   @@unique([ur_id, ur_role, ur_category])
@@ -130,7 +131,7 @@ model Article {
   a_author    Int     @map("a_author")
   a_content   String  @db.Text
   a_title     String  @db.VarChar(50)
-  a_slug      String? @db.VarChar(50)
+  a_slug      String? @db.VarChar(100)
   a_status    Int     @map("a_status")
   a_moderator Int     @map("a_moderator")
   a_language  Int?    @map("a_language")
@@ -172,10 +173,11 @@ model Tag {
 }
 
 model Comment {
-  c_id      Int  @id @default(autoincrement())
-  c_article Int  @map("c_article")
-  c_user    Int  @map("c_user")
-  c_parent  Int? @map("c_parent")
+  c_id      Int     @id @default(autoincrement())
+  c_article Int     @map("c_article")
+  c_user    Int     @map("c_user")
+  c_parent  Int?    @map("c_parent")
+  c_message String? @map("c_message") @db.VarChar(512)
 
   // Relations
   article  Article   @relation(fields: [c_article], references: [a_id])

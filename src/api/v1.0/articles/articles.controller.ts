@@ -1,9 +1,23 @@
-import { Body, Controller, Get, Post } from '@nestjs/common';
+import {
+  Body,
+  ClassSerializerInterceptor,
+  Controller,
+  Delete,
+  Get,
+  HttpCode,
+  Param,
+  ParseIntPipe,
+  Post,
+  Put,
+  UseInterceptors,
+} from '@nestjs/common';
 import { ArticlesService } from './articles.service';
-import { ApiBody, ApiOperation, ApiResponse } from '@nestjs/swagger';
+import { ApiBody, ApiOperation, ApiParam, ApiResponse } from '@nestjs/swagger';
 import { ArticleRequestTo } from '../../../dto/articles/ArticleRequestTo.dto';
 import { ArticleResponseTo } from '../../../dto/articles/ArticleResponseTo.dto';
+import { ArticleResponseUniqDto } from '../../../dto/articles/ArticleResponseUniq.dto';
 
+@UseInterceptors(ClassSerializerInterceptor)
 @Controller()
 export class ArticlesController {
   constructor(private readonly articlesService: ArticlesService) {}
@@ -39,5 +53,44 @@ export class ArticlesController {
   })
   async getAllArticles(): Promise<ArticleResponseTo[]> {
     return this.articlesService.getAllArticles();
+  }
+
+  @Get(':id')
+  @ApiOperation({ summary: 'Get article by id' })
+  @ApiParam({ name: 'id', type: Number, description: 'The id of the article' })
+  @ApiResponse({
+    status: 200,
+    description: 'Article found with id of the article',
+    type: ArticleResponseUniqDto,
+  })
+  @ApiResponse({ status: 404, description: 'Article not found.' })
+  async getArticle(@Param('id') id: number): Promise<ArticleResponseUniqDto> {
+    return this.articlesService.getArticleById(id);
+  }
+
+  @Put(':id')
+  @ApiOperation({ summary: 'Update article by id' })
+  @ApiParam({ name: 'id', type: Number, description: 'The id of the article' })
+  @ApiBody({ type: ArticleRequestTo, description: 'Fields of updated article' })
+  @ApiResponse({
+    status: 200,
+    description: 'Article updated successfully.',
+    type: ArticleResponseTo,
+  })
+  @ApiResponse({ status: 404, description: 'Article not found.' })
+  async updateArticle(
+    @Param('id', ParseIntPipe) id: number,
+    @Body() article: ArticleRequestTo,
+  ): Promise<ArticleResponseTo> {
+    return this.articlesService.updateArticle(id, article);
+  }
+
+  @HttpCode(204)
+  @Delete(':id')
+  @ApiOperation({ summary: 'Delete article' })
+  @ApiParam({ name: 'id', type: Number, description: 'The id of the article' })
+  @ApiResponse({ status: 404, description: 'Article not found.' })
+  async deleteArticle(@Param('id') id: number): Promise<void> {
+    return this.articlesService.deleteArticle(id);
   }
 }

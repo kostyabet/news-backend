@@ -1,10 +1,10 @@
-import { ApiProperty } from '@nestjs/swagger';
+import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { IsString, MaxLength } from 'class-validator';
 
 export class ArticleRequestTo {
   @ApiProperty({
-    example: 'Hello, i want to say that...',
-    description: 'Content of the Article',
+    example: 'Global warm',
+    description: 'Title of the Article',
   })
   @IsString()
   @MaxLength(50, {
@@ -19,13 +19,13 @@ export class ArticleRequestTo {
   @IsString()
   content: string;
 
-  @ApiProperty({
-    example: 'Slug of the article...',
+  @ApiPropertyOptional({
+    example: 'This is very big problem about article.',
     description: 'Slug of the Article',
   })
   @IsString()
   @MaxLength(50, {
     message: 'The content must be no more than 50 characters long',
   })
-  slug: string;
+  slug?: string;
 }

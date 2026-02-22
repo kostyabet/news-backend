@@ -1,0 +1,2 @@
+-- AlterTable
+ALTER TABLE "article" ALTER COLUMN "a_slug" SET DATA TYPE VARCHAR(100);
