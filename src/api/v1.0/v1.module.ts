@@ -1,17 +1,18 @@
 import { Module } from '@nestjs/common';
 import { RouterModule } from '@nestjs/core';
+import { ArticlesModule } from './articles/articles.module';
 
 @Module({
   imports: [
     // UsersModule,
-    // ArticlesModule,
+    ArticlesModule,
     // NoticesModule,
     // StickersModule,
     RouterModule.register([
-      // {
-      //   path: 'v1.0/users',
-      //   module: UsersModule,
-      // },
+      {
+        path: 'v1.0/articles',
+        module: ArticlesModule,
+      },
       // {
       //   path: 'v1.0/articles',
       //   module: ArticlesModule,
