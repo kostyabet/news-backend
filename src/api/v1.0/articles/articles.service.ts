@@ -31,9 +31,41 @@ export class ArticlesService {
   }
 
   async getAllArticles(): Promise<ArticleResponseTo[]> {
-    const articles = await this.prisma.article.findMany();
+    const articles = await this.prisma.article.findMany({
+      include: {
+        tags: {
+          include: {
+            tag: true,
+          },
+        },
+        categories: true,
+      },
+    });
 
-    return plainToInstance(ArticleResponseTo, articles);
+
+    const formattedArticle = await Promise.all(
+      articles.map(async (article) => {
+        const categories = await Promise.all(
+          article.categories.map(async (relation) => {
+            const category = await this.prisma.category.findUnique({
+              where: { c_id: relation.ac_category },
+            });
+            if (!category) {
+              return '';
+            }
+            return category.c_name;
+          }),
+        );
+
+        return {
+          ...article,
+          tags: article.tags.map((relation) => relation.tag.t_tag),
+          categories: categories,
+        };
+      }),
+    );
+
+    return plainToInstance(ArticleResponseTo, formattedArticle);
   }
 
   async getArticleById(id: number): Promise<ArticleResponseUniqDto> {
@@ -46,7 +78,6 @@ export class ArticlesService {
           },
         },
         comments: true,
-        reactions: true,
         tags: {
           include: {
             tag: true,
@@ -74,12 +105,15 @@ export class ArticlesService {
       }),
     );
 
+    const reactionsCount = await this.prisma.reaction.count();
+
     const formattedArticle = {
       ...article,
       tags: article.tags.map((relation) => relation.tag.t_tag),
       categories: categories,
       language: article?.language?.l_language || null,
       status: article.status.as_status,
+      reactions: reactionsCount,
     };
 
     return plainToInstance(ArticleResponseUniqDto, formattedArticle);

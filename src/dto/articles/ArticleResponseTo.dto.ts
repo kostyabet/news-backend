@@ -27,6 +27,12 @@ export class ArticleResponseTo {
   })
   a_slug: string | null;
 
+  @Expose()
+  tags: string[];
+
+  @Expose()
+  categories: string[];
+
   @Exclude()
   a_author?: number;
   @Exclude()

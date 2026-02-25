@@ -5,6 +5,7 @@ import { LanguageResponseTo } from '../language/LanguageResponseTo.dto';
 import { TagResponseDto } from '../tag/TagResponse.dto';
 import { AuthorResponseTo } from '../author/AuthorResponseTo.dto';
 import { CommentResponseTo } from '../comment/CommentResponseTo.dto';
+import { ReactionResponseTo } from '../reaction/ReactionResponseTo.dto';
 
 export class ArticleResponseUniqDto {
   @Expose({ name: 'id', toPlainOnly: true })
@@ -48,9 +49,8 @@ export class ArticleResponseUniqDto {
   @Type(() => CommentResponseTo)
   comments: CommentResponseTo[];
 
-  // @Expose()
-  // // @Type(() => ReactionDto)
-  // reactions: any[]; // Замените на ReactionDto[]
+  @Expose()
+  reactions: number;
 
   @Expose()
   tags: string[];
