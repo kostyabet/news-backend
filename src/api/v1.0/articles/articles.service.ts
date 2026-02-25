@@ -62,9 +62,24 @@ export class ArticlesService {
       throw new NotFoundException('Article with id not found!');
     }
 
+    const categories = await Promise.all(
+      article.categories.map(async (relation) => {
+        const category = await this.prisma.category.findUnique({
+          where: { c_id: relation.ac_category },
+        });
+        if (!category) {
+          return '';
+        }
+        return category.c_name;
+      }),
+    );
+
     const formattedArticle = {
       ...article,
-      tags: article.tags.map((relation) => relation.tag),
+      tags: article.tags.map((relation) => relation.tag.t_tag),
+      categories: categories,
+      language: article?.language?.l_language || null,
+      status: article.status.as_status,
     };
 
     return plainToInstance(ArticleResponseUniqDto, formattedArticle);

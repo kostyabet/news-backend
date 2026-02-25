@@ -38,12 +38,11 @@ export class ArticleResponseUniqDto {
   author: AuthorResponseTo;
 
   @Expose()
-  @Type(() => LanguageResponseTo)
-  language: LanguageResponseTo;
+  language: string;
 
   @Expose()
   @Type(() => StatusResponseToDto)
-  status: StatusResponseToDto;
+  status: string;
 
   @Expose()
   @Type(() => CommentResponseTo)
@@ -54,12 +53,10 @@ export class ArticleResponseUniqDto {
   // reactions: any[]; // Замените на ReactionDto[]
 
   @Expose()
-  @Type(() => TagResponseDto)
-  tags: TagResponseDto[]; // Замените на TagDto[]
+  tags: string[];
 
-  // @Expose()
-  // // @Type(() => CategoryDto)
-  // categories: any[]; // Замените на CategoryDto[]
+  @Expose()
+  categories: string[];
 
   // --- Delete ---
   @Exclude()

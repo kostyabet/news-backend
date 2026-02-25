@@ -23,12 +23,12 @@ export class UserInfoResponseTo {
   })
   ui_firstName: string;
 
-  @Expose({ name: 'secondName', toPlainOnly: true })
+  @Expose({ name: 'lastName', toPlainOnly: true })
   @ApiProperty({
     example: 'Ivanov',
     description: 'User second name',
   })
-  ui_secondName: string;
+  ui_lastName: string;
 
   @Exclude()
   ui_user: number;
