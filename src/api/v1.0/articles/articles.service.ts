@@ -42,7 +42,6 @@ export class ArticlesService {
       },
     });
 
-
     const formattedArticle = await Promise.all(
       articles.map(async (article) => {
         const categories = await Promise.all(
