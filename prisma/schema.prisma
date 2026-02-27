@@ -90,6 +90,8 @@ model User {
   userInfo          UserInfo?
   settings          Settings?      @relation(fields: [u_settings], references: [s_user])
   u_settings        Int?
+  userRole          UserRole       @relation(fields: [u_role], references: [ur_id])
+  u_role            Int            @map("ui_role")
 
   @@unique([u_login, u_password_hash])
   @@map("user")
@@ -97,7 +99,6 @@ model User {
 
 model UserInfo {
   ui_user      Int     @id
-  ui_role      Int     @map("ui_role")
   ui_email     String? @db.VarChar(50)
   ui_avatar    String? @db.VarChar(50)
   ui_firstName String? @db.VarChar(128)
@@ -105,22 +106,22 @@ model UserInfo {
 
   // Relations
   user     User      @relation(fields: [ui_user], references: [u_id], onDelete: Cascade)
-  role     UserRole  @relation(fields: [ui_role], references: [ur_id])
   settings Settings?
 
-  @@unique([ui_user, ui_role])
+  @@unique([ui_user])
   @@index([ui_user, ui_email, ui_avatar, ui_firstName, ui_lastName])
   @@map("user-info")
 }
 
 model UserRole {
-  ur_id       Int    @id @default(autoincrement())
-  ur_role     String @db.VarChar(50)
-  ur_category Int?   @map("ur_category")
+  ur_id       Int     @id @default(autoincrement())
+  ur_role     String  @db.VarChar(50)
+  ur_category Int?    @map("ur_category")
+  ur_public   Boolean @default(false)
 
   // Relations
-  category Category?  @relation(fields: [ur_category], references: [c_id])
-  userInfo UserInfo[]
+  category Category? @relation(fields: [ur_category], references: [c_id])
+  users    User[]
 
   @@unique([ur_id, ur_role, ur_category])
   @@map("user-role")

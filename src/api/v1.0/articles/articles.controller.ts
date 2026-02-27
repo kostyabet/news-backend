@@ -12,12 +12,7 @@ import {
   UseInterceptors,
 } from '@nestjs/common';
 import { ArticlesService } from './articles.service';
-import {
-  ApiBody,
-  ApiOperation,
-  ApiParam,
-  ApiResponse,
-} from '@nestjs/swagger';
+import { ApiBody, ApiOperation, ApiParam, ApiResponse } from '@nestjs/swagger';
 import { ArticleRequestTo } from '../../../dto/articles/ArticleRequestTo.dto';
 import { ArticleResponseTo } from '../../../dto/articles/ArticleResponseTo.dto';
 import { ArticleResponseUniqDto } from '../../../dto/articles/ArticleResponseUniq.dto';
