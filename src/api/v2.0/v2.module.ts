@@ -1,16 +1,16 @@
 import { Module } from '@nestjs/common';
-import { RouterModule } from '@nestjs/core';
 import { ArticlesModule } from './articles/articles.module';
+import { RouterModule } from '@nestjs/core';
 
 @Module({
   imports: [
     ArticlesModule,
     RouterModule.register([
       {
-        path: 'v1.0/articles',
+        path: 'v2.0/articles',
         module: ArticlesModule,
       },
     ]),
   ],
 })
-export class V1AppModule {}
+export class V2AppModule {}

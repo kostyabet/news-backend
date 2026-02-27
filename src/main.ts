@@ -1,11 +1,9 @@
-import { NestFactory, Reflector } from '@nestjs/core';
+import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
 import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
-import {
-  ClassSerializerInterceptor,
-  ValidationPipe,
-  VersioningType,
-} from '@nestjs/common';
+import { ValidationPipe, VersioningType } from '@nestjs/common';
+import { V1AppModule } from './api/v1.0/v1.module';
+import { V2AppModule } from './api/v2.0/v2.module';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
@@ -23,16 +21,60 @@ async function bootstrap() {
 
   app.setGlobalPrefix('api');
 
-  const config = new DocumentBuilder()
-    .setTitle('Multi-version API')
-    .setDescription('Support multiple API versions')
-    .setVersion('1.0')
-    .addServer('', 'Version 1.0')
+  const createSwaggerConfig = (
+    version: string,
+    title: string,
+    description: string,
+  ) => {
+    return new DocumentBuilder()
+      .setTitle(title)
+      .setDescription(description)
+      .setVersion(version)
+      .build();
+  };
+
+  const versions = [
+    {
+      version: '1',
+      path: 'v1/docs',
+      title: 'API v1.0',
+      description: 'Work with articles only',
+      include: [V1AppModule],
+    },
+    {
+      version: '2',
+      path: 'v2/docs',
+      title: 'API v2.0',
+      description: 'Add work with users',
+      include: [V2AppModule],
+    },
+  ];
+
+  versions.forEach(({ version, path, title, description, include }) => {
+    const config = createSwaggerConfig(version, title, description);
+
+    const document = SwaggerModule.createDocument(app, config, {
+      include: include,
+      deepScanRoutes: true,
+      operationIdFactory: (controllerKey: string, methodKey: string) =>
+        `${controllerKey}_${methodKey}`,
+    });
+
+    SwaggerModule.setup(`api/${path}`, app, document);
+  });
+
+  const mergedConfig = new DocumentBuilder()
+    .setTitle('Multi-version API - Complete Documentation')
+    .setDescription('Complete API documentation covering all versions')
+    .setVersion('combined')
     .build();
 
-  const document = SwaggerModule.createDocument(app, config);
+  const mergedDocument = SwaggerModule.createDocument(app, mergedConfig, {
+    deepScanRoutes: true,
+    operationIdFactory: (controllerKey: string, methodKey: string) => methodKey,
+  });
 
-  SwaggerModule.setup('api/docs', app, document);
+  SwaggerModule.setup('api/docs', app, mergedDocument);
 
   app.useGlobalPipes(
     new ValidationPipe({

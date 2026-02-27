@@ -1,23 +1,14 @@
+// app.module.ts
 import { Module } from '@nestjs/common';
 import { V1AppModule } from './api/v1.0/v1.module';
-import { RouterModule } from '@nestjs/core';
 import { ConfigModule } from '@nestjs/config';
+import { V2AppModule } from './api/v2.0/v2.module';
 
 @Module({
   imports: [
     ConfigModule.forRoot(),
     V1AppModule,
-    RouterModule.register([
-      {
-        path: 'api',
-        children: [
-          {
-            path: 'v1.0',
-            module: V1AppModule,
-          },
-        ],
-      },
-    ]),
+    V2AppModule,
   ],
 })
 export class AppModule {}
