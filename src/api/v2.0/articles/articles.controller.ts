@@ -9,14 +9,24 @@ import {
   ParseIntPipe,
   Post,
   Put,
+  UseGuards,
   UseInterceptors,
 } from '@nestjs/common';
 import { ArticlesService } from './articles.service';
-import { ApiBody, ApiOperation, ApiParam, ApiResponse } from '@nestjs/swagger';
+import {
+  ApiBearerAuth,
+  ApiBody,
+  ApiOperation,
+  ApiParam,
+  ApiResponse,
+} from '@nestjs/swagger';
 import { ArticleRequestTo } from '../../../dto/articles/ArticleRequestTo.dto';
 import { ArticleResponseTo } from '../../../dto/articles/ArticleResponseTo.dto';
 import { ArticleResponseUniqDto } from '../../../dto/articles/ArticleResponseUniq.dto';
+import { JwtAuthGuard } from '../../../guards/jwt-auth.guard';
 
+@UseGuards(JwtAuthGuard)
+@ApiBearerAuth('JWT-auth')
 @UseInterceptors(ClassSerializerInterceptor)
 @Controller()
 export class ArticlesController {

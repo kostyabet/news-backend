@@ -25,12 +25,28 @@ async function bootstrap() {
     version: string,
     title: string,
     description: string,
+    showAuth = false,
   ) => {
-    return new DocumentBuilder()
+    const builder = new DocumentBuilder()
       .setTitle(title)
       .setDescription(description)
-      .setVersion(version)
-      .build();
+      .setVersion(version);
+
+    if (showAuth) {
+      builder.addBearerAuth(
+        {
+          type: 'http',
+          scheme: 'bearer',
+          bearerFormat: 'JWT',
+          name: 'JWT',
+          description: 'Enter JWT token',
+          in: 'header',
+        },
+        'JWT-auth',
+      );
+    }
+
+    return builder.build();
   };
 
   const versions = [
@@ -40,6 +56,7 @@ async function bootstrap() {
       title: 'API v1.0',
       description: 'Work with articles only',
       include: [V1AppModule],
+      auth: false,
     },
     {
       version: '2',
@@ -47,11 +64,12 @@ async function bootstrap() {
       title: 'API v2.0',
       description: 'Add work with users',
       include: [V2AppModule],
+      auth: true,
     },
   ];
 
-  versions.forEach(({ version, path, title, description, include }) => {
-    const config = createSwaggerConfig(version, title, description);
+  versions.forEach(({ version, path, title, description, include, auth }) => {
+    const config = createSwaggerConfig(version, title, description, auth);
 
     const document = SwaggerModule.createDocument(app, config, {
       include: include,
@@ -63,11 +81,12 @@ async function bootstrap() {
     SwaggerModule.setup(`api/${path}`, app, document);
   });
 
-  const mergedConfig = new DocumentBuilder()
-    .setTitle('Multi-version API - Complete Documentation')
-    .setDescription('Complete API documentation covering all versions')
-    .setVersion('combined')
-    .build();
+  const mergedConfig = createSwaggerConfig(
+    'combined',
+    'Multi-version API - Complete Documentation',
+    'Complete API documentation covering all versions',
+    true, // Включаем авторизацию здесь тоже
+  );
 
   const mergedDocument = SwaggerModule.createDocument(app, mergedConfig, {
     deepScanRoutes: true,
